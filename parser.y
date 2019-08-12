@@ -10,7 +10,7 @@
 	#include <algorithm>
 
 
-	#include "node.h"
+	#include "node.cpp"
 
 	using namespace std;
 
@@ -19,7 +19,7 @@
 	bool err=false;
 
 	vector<Node*> global;
-	vector<Node*> function;
+	vector<Node*> funzioni;
 
 
 
@@ -56,7 +56,7 @@
 %type <node> Primary
 %type <node> Expression
 %type <node> Assignment
-%type <node> ReturnStmt
+%type <node> ReturnNode
 %type <node> IfStmt
 %type <node> WhileStmt
 %type <node> PrintfStmt
@@ -93,12 +93,12 @@ Program
     ;
 
 ExternalDeclaration
-    : ExternalContent                                   { reverse(global.begin(), global.end()); reverse(function.begin(), function.end()); $$ = new ExternalDec(yylineno, global, function); global.clear(); }
+    : ExternalContent                                   { reverse(global.begin(), global.end()); reverse(funzioni.begin(), funzioni.end()); $$ = new ExternalDec(yylineno, global, funzioni); global.clear(); }
     ;
 
 ExternalContent
-	: FunctionDeclaration								{ function.push_back($1); }
-	| FunctionDeclaration ExternalContent   			{ function.push_back($1); }
+	: FunctionDeclaration								{ funzioni.push_back($1); }
+	| FunctionDeclaration ExternalContent   			{ funzioni.push_back($1); }
 	| VariableDeclaration ';' ExternalContent   		{ global.push_back($1); }
 	;
 
@@ -137,7 +137,7 @@ FunctionContent
 	| FunctionContent ScanfStmt ';' 				{ $$->push($2); }
 	| FunctionContent IfStmt 						{ $$->push($2); }
 	| FunctionContent WhileStmt  					{ $$->push($2); }
-	| FunctionContent ReturnStmt ';' 				{ $$->push($2); }
+	| FunctionContent ReturnNode ';' 				{ $$->push($2); }
 	| FunctionContent Assignment ';' 				{ $$->push($2); }
 	;
 
@@ -168,8 +168,8 @@ WhileStmt
 	: T_WHILE '(' Expression ')' '{' FunctionContent '}'		{ $$ = new WhileStmt (yylineno, $3, $6->nodes); }
 	;
 
-ReturnStmt
-	: T_RETURN Expression 										{ $$ = new ReturnStmt (yylineno, $2); }
+ReturnNode
+	: T_RETURN Expression 										{ $$ = new ReturnNode (yylineno, $2); }
 	;
 
 Assignment

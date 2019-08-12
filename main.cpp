@@ -1,6 +1,5 @@
 #include <iostream>
-#include "node.h"
-#include "translate.h"
+#include "node.cpp"
 
 using namespace std;
 

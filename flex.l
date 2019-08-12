@@ -6,7 +6,7 @@
 	#include <iostream>
 	#include <cstdio>
 
-	#include "node.h"
+	#include "node.cpp"
 	#include "parser.hpp"
 %}
 

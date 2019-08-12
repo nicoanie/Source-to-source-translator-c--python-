@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "Value.h"
 
 using namespace std;
 /* ------------------------------ Dichiarazione classe principale Nodo ------------------------------- */
@@ -13,7 +12,8 @@ public:
     string type;
     string name;
     virtual ~Node() = default;
-    virtual Struttura* semantics() = 0;
+    virtual void semantics() = 0;
+
 };
 
 class Vec
@@ -32,7 +32,7 @@ class IntegerNode : public Node
 {
 public:
     int value;
-    virtual Struttura* semantics();
+    void semantics();
 
     IntegerNode(int line, char* value){
         this->line = line;
@@ -46,12 +46,11 @@ class FloatNode : public Node
 {
 public:
     float value;
-    virtual Struttura* semantics();
+    void semantics();
 
     FloatNode(int line, char* value){
         this->line = line;
         this->value = atof(value);
-        cout << this->value << endl;
 
         //TODO: Vedere cosa bisogna fare dopo
     }
@@ -61,12 +60,11 @@ class CharNode : public Node
 {
 public:
     char value;
-    virtual Struttura* semantics();
+    void semantics();
 
     CharNode(int line, char* value){
         this->line = line;
         this->value = value[1];
-        cout << this->value << endl;
 
         //TODO: Vedere cosa bisogna fare dopo
     }
@@ -76,7 +74,7 @@ class BoolNode : public Node
 {
 public:
     string value;
-    virtual Struttura* semantics();
+    void semantics();
 
     BoolNode(int line, char* value):value(value){
         this->line = line;
@@ -90,7 +88,7 @@ class IdentifierNode : public Node
 {
 public:
     string value;
-    virtual Struttura* semantics();
+    void semantics();
 
     IdentifierNode(int line, char* value){
         this->line = line;
@@ -106,7 +104,7 @@ class VariableDec : public Node
 {
 public:
     Node* value;
-    virtual Struttura* semantics();
+    void semantics();
 
     VariableDec(int line, char* type, char* name){
         this->line = line;
@@ -129,7 +127,7 @@ class Assignment : public Node
 {
 public:
     Node* value;
-    virtual Struttura* semantics();
+    void semantics();
 
     Assignment(int line, char* name, Node* value):value(value){
         this->line = line;
@@ -145,7 +143,7 @@ class FuncDecl : public Node
 public:
     vector<Node*> args;
     vector<Node*> body;
-    virtual Struttura* semantics();
+    void semantics();
 
     FuncDecl(int line, char* type, char* name, vector<Node*> args, vector<Node*> body):args(args),body(body){
         this->line = line;
@@ -167,19 +165,17 @@ class FunctionCall : public Node
 {
 public:
     vector<Node*> args;
-    virtual Struttura* semantics();
+    void semantics();
 
     FunctionCall(int line, char* name, vector<Node*> args):args(args){
         this->line = line;
         this->name = name;
-        cout << "Name: "<< name<< "||" << "line: "<< line<< endl;
         //TODO
     }
 
     FunctionCall(int line, char* name){
         this->line = line;
         this->name = name;
-        cout << "Name: "<< name<< "||" << "line: "<< line<< endl;
 
         //TODO
     }
@@ -193,7 +189,7 @@ public:
     Node* condition;
     vector<Node*> body_if;
     vector<Node*> body_else;
-    virtual Struttura* semantics();
+    void semantics();
 
     IfStmt(int line, Node* condition, vector<Node*> body_if):condition(condition),body_if(body_if){
         this->line = line;
@@ -214,7 +210,7 @@ class WhileStmt : public Node
 public:
     Node* condition;
     vector<Node*> body_while;
-    virtual Struttura* semantics();
+    void semantics();
 
     WhileStmt(int line, Node* condition, vector<Node*> body_while):condition(condition),body_while(body_while){
         this->line = line;
@@ -224,13 +220,13 @@ public:
 
 };
 
-class ReturnStmt : public Node
+class ReturnNode : public Node
 {
 public:
     Node* value;
-    virtual Struttura* semantics();
+    void semantics();
 
-    ReturnStmt(int line, Node* value):value(value){
+    ReturnNode(int line, Node* value):value(value){
         this->line = line;
 
         //TODO: Vedere come gestire il valore
@@ -243,7 +239,7 @@ class PrintStmt : public Node
 {
 public:
     Node* value;
-    virtual Struttura* semantics();
+    void semantics();
 
     PrintStmt(int line, char* value){
         this->line = line;
@@ -257,7 +253,7 @@ class ScanfStmt : public Node
 {
 public:
     Node* value;
-    virtual Struttura* semantics();
+    void semantics();
 
     ScanfStmt(int line, char* value){
         this->line = line;
@@ -275,7 +271,7 @@ public:
     int operatore;
     Node*	lexpr;
     Node*	rexpr;
-    virtual Struttura* semantics();
+    void semantics();
 
     BinaryOperator(int line, int operatore, Node* lexpr, Node* rexpr):operatore(operatore),lexpr(lexpr),rexpr(rexpr) {
         this->line = line;
@@ -292,7 +288,7 @@ class ExternalDec : public Node
 {
     vector<Node*> variables;
     vector<Node*> function;
-    virtual Struttura* semantics();
+    void semantics();
 
 public:
     ExternalDec(int line, vector<Node*> variables, vector<Node*> function):variables(variables),function(function){
@@ -301,4 +297,3 @@ public:
     /* TODO: Vedere come gestire*/
 };
 
-/* -------------------------------------------------------------------------------------------- */
