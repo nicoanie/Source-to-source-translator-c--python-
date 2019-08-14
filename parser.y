@@ -113,6 +113,7 @@ VariableDeclaration
 
 VariableAssignment
 	: T_TYPE T_IDENT T_ASSIGN Expression			{ $$ = new VariableDec(yylineno, $1, $2, $4); }
+	| T_TYPE T_IDENT T_ASSIGN FunctionCall			{ $$ = new VariableDec(yylineno, $1, $2, $4); }
 	;
 
 Primary
@@ -174,6 +175,7 @@ ReturnNode
 
 Assignment
 	: T_IDENT T_ASSIGN Expression								{ $$ = new Assignment (yylineno, $1, $3); }
+	| T_IDENT T_ASSIGN FunctionCall								{ $$ = new Assignment (yylineno, $1, $3); }
 	;
 
 Expression

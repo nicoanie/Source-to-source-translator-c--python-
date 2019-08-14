@@ -109,6 +109,15 @@ void FunctionCall :: semantics(){
     if(SymbolTableFunction.count(name)==0)
         Error("Implicit declaretion of function.", line);
 
+    //Se la funzione viene trovata verifico che non ci sia una variabile con lo stesso nome in function declaration
+    if(SymbolTableVar.count(name) != 0){
+        auto it = SymbolTableVar.find(name);
+        for(int i=0; i<SymbolTableVar.count(name); i++){
+            if(it->second.scope == name_function_declaration || it->second.scope == "global")
+                Error("called object is not a function or function pointer", line);
+        }
+    }
+
     //Se la funzione viene trovata verifico che il numero di parametri della funzione dichiarata siano uguali a quelli che passo
     auto it = SymbolTableFunction.find(name);
     if(it->second.args.size() > args.size())
@@ -223,6 +232,7 @@ void BoolNode :: semantics(){
 void IfStmt :: semantics(){
 
     cout << "Dentro IfNode" << endl;
+    //TODO: Validare la condizione
     condition->semantics();
     for(int i=0; i<body_if.size();i++){
         cout << "Body if" << endl;
