@@ -99,4 +99,5 @@ void DeclarationVarArgs(string name_func, string name_arg, string type, int line
 //TODO: Gestire errori sui tipi di variabili
 string name_function_declaration;
 string name_function_call;
+int f_c; //Serve ad identifier node per capire quale nodo lo ha richiamato
 int iterazione; //Memorizzo il numero di iterazione degli argomenti della funzione che vado a richiamare

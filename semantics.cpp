@@ -46,6 +46,8 @@ void ExternalDec :: semantics(){
         auto it1= SymbolTableFunction.find("main");
         if(it1->second.type != "int" && it1->second.type != "void")
             Error("Wrong function type.", line);
+        if(it1->second.args.size() != 0)
+            Error("Wrong parameter declaration.", line);
     }
 }
 
@@ -129,8 +131,10 @@ void FunctionCall :: semantics(){
     //Vado a gestire i parametri
     for(int i=0; i<args.size(); i++){
         iterazione = i; //Memorizzo il numero dell'iterazione
+        f_c = 1;
         //Richiamo il nodo identifier per ogni parametro ed effettuo i controlli
         args[i]->semantics();
+        f_c = 0;
     }
 
 /*
@@ -161,11 +165,20 @@ void IdentifierNode :: semantics(){
     auto it2= SymbolTableFunction.find(name_function_call);
     for(int i=0; i< SymbolTableVar.count(value); i++){
         if(it->second.scope == name_function_declaration || it->second.scope == "global"){
-            if(it->second.type != it2->second.args[iterazione]->type)
-                Error("Error type variable.", line);
+            //Controllo se è stato il nodo FunctionCall a richiamare
+            //Se è vero, vado a controllare se coincidie anche il tipo della variabile
+            if(f_c==1){
+                if(it->second.type != it2->second.args[iterazione]->type)
+                    Error("Error type variable.", line);
                 //TODO: Gestire casting varibili
-            found = true; // Corrispondenza variabile trovata
-            i=SymbolTableVar.count(value);
+                found = true; // Corrispondenza variabile trovata
+                i=SymbolTableVar.count(value);
+            }
+            //Se è falso, segnalo che la variabile è stata trovata
+            else{
+                found = true; // Corrispondenza variabile trovata
+                i=SymbolTableVar.count(value);
+            }
         }
         it++;
     }
@@ -232,7 +245,7 @@ void BoolNode :: semantics(){
 void IfStmt :: semantics(){
 
     cout << "Dentro IfNode" << endl;
-    //TODO: Validare la condizione
+    //TODO: Visto che non ho stringhe, dovrei solo capire bene l'overfitting delle variabili
     condition->semantics();
     for(int i=0; i<body_if.size();i++){
         cout << "Body if" << endl;
@@ -279,7 +292,11 @@ void ScanfStmt :: semantics(){
 void BinaryOperator :: semantics(){
 
     cout << "Dentro BinaryOperator" << endl;
-/*    lexpr->semantics();
-    rexpr->semantics();*/
+
+    cout << "Prima di lexpr" << endl;
+    lexpr->semantics();
+    cout << "Dopo lexpr" << endl;
+    rexpr->semantics();
+    cout << "Dopo rexpr" << endl;
 
 }
