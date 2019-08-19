@@ -137,17 +137,8 @@ void FunctionCall :: semantics(){
         f_c = 0;
     }
 
-/*
-    *//*  DEBUG  *//*
-    //Verifico se le informazioni vengono salvate bene nella unordered map(SymbolTableVar)
-    auto aux = SymbolTableFunctionCall.find("null");
-    for(int i=0; i<SymbolTableFunctionCall.count("null"); i++){
-        cout << "Info var current: "<< "value: " << aux->second.value << "line: " << aux->second.line << endl;
-        aux++; // Incremento aux, altrimenti resta sempre alla stessa iterazione
-    }
-
-    *//*  FINE DEBUG  *//*
-    */
+    //Variabile utile a segnalare in che nodo sono entrato
+    nodo = 6;
 }
 
 void IdentifierNode :: semantics(){
@@ -177,6 +168,12 @@ void IdentifierNode :: semantics(){
             //Se è falso, segnalo che la variabile è stata trovata
             else{
                 found = true; // Corrispondenza variabile trovata
+                //Memorizzo di che tipo è la varibile
+                if(it->second.type == "int") tipo=1;
+                if(it->second.type == "float") tipo=2;
+                if(it->second.type == "char") tipo=3;
+                if(it->second.type == "bool") tipo=4;
+
                 i=SymbolTableVar.count(value);
             }
         }
@@ -185,6 +182,10 @@ void IdentifierNode :: semantics(){
 
     if (!found)
         Error("Variable undeclared (first use in this function).", line);
+
+    //Variabile utile per le verifiche nel nodo return
+    nodo = 3;
+
 }
 
 void Assignment :: semantics(){
@@ -192,10 +193,13 @@ void Assignment :: semantics(){
     cout << "Dentro AssignmentNode" << endl;
     //Verifico che la variabile sia stata dichiarata
     bool found;
+    string tipovar;
+
     auto it = SymbolTableVar.find(name);
     for(int i=0; i<SymbolTableVar.count(name);i++){
         if(it->second.scope == name_function_declaration || it->second.scope == "global"){
             found = true;
+            tipovar = it->second.type;
             i=SymbolTableVar.count(name);
         }
         it++;
@@ -204,47 +208,54 @@ void Assignment :: semantics(){
         Error("Variable undeclared.", line);
 
     value->semantics();
+
+    auto it2 = SymbolTableFunction.find(name_function_call);
+    //Gestisco il casting
+    if(nodo == 6){
+        if(tipovar == "int" && it2->second.type == "float" ) Warning("Narrowing conversion from 'float' to 'int'.", line);
+        if(tipovar == "char" && it2->second.type == "float" ) Warning("Narrowing conversion from 'float' to 'char'.", line);
+        if(tipovar == "bool" && it2->second.type == "float" ) Warning("Narrowing conversion from 'float' to 'bool'.", line);
+    }
 }
-
-
-/*--------------------------------------------- TODO: Cose da fare -------------------------------------------------- */
 
 void IntegerNode :: semantics(){
     cout << "Dentro IntegerNode" << endl;
-    cout << "TODO:Vedere che cazzo fare" << endl;
+    value_type_node = value;
 
-    //TODO:Vedere che cazzo fare(dovrei restituire il valore intero)
-
+    //Variabile utile per le verifiche nel nodo return
+    nodo = 1;
 }
 
 void FloatNode :: semantics(){
     cout << "Dentro FloatNode" << endl;
-    cout << "TODO:Vedere che cazzo fare" << endl;
+    value_type_node = value;
 
-    //TODO:Vedere che cazzo fare(dovrei restituire il valore float)
-
+    //Variabile utile per le verifiche nel nodo return
+    nodo = 2;
 }
 
 void CharNode :: semantics(){
     cout << "Dentro CharNode" << endl;
-    cout << "TODO:Vedere che cazzo fare" << endl;
+    value_type_node = value;
 
-    //TODO:Vedere che cazzo fare(dovrei restituire il valore char)
-
+    //Variabile utile per le verifiche nel nodo return
+    nodo = 4;
 }
 
 void BoolNode :: semantics(){
     cout << "Dentro BoolNode" << endl;
-    cout << "TODO:Vedere che cazzo fare" << endl;
+    if (value == "true") value_type_node = 1;
+    if (value == "false") value_type_node = 0;
 
-    //TODO:Vedere che cazzo fare(dovrei restituire il valore 0 o 1)
-
+    //Variabile utile per le verifiche nel nodo return
+    nodo = 5;
 }
 
 
 void IfStmt :: semantics(){
 
     cout << "Dentro IfNode" << endl;
+
     //TODO: Visto che non ho stringhe, dovrei solo capire bene l'overfitting delle variabili
     condition->semantics();
     for(int i=0; i<body_if.size();i++){
@@ -260,18 +271,55 @@ void IfStmt :: semantics(){
 void WhileStmt :: semantics(){
 
     cout << "Dentro WhileNode" << endl;
-/*    cout <<"Nome : "<< name <<  endl;
-*/
+
+    //TODO: Come per la condizione dell'if, non avendo le stringhe, la condizione dovrebbe essere sempre possibile portarla al formato booleano
+    condition->semantics();
+    for(int i=0; i<body_while.size(); i++){
+        cout << "Body While" << endl;
+        body_while[i]->semantics();
+    }
 
 }
 
 void ReturnNode :: semantics(){
 
     cout << "Dentro ReturnNode" << endl;
-/*    cout <<"Nome : "<< name <<  endl;
-*/
+    value->semantics();
 
+    auto it = SymbolTableFunction.find(name_function_declaration);
+
+    //In base al tipo di funzione, stabilisco cosa è possibile restituire
+
+    //Restrizioni per funzioni di tipo intero
+    if(it->second.type == "int"){
+        //Se si è entrati nel nodo identifier, bisogna vedere di che tipo è la variabile restituita
+        if(nodo==3){
+            if(tipo == 2) Warning("Narrowing conversion from 'float' to 'int'.", line);
+        }
+        if(nodo==2) Warning("Narrowing conversion from 'float' to 'int'.", line);
+    }
+
+    //Restrizioni per funzioni di tipo char
+    if(it->second.type == "char"){
+        //Se si è entrati nel nodo identifier, bisogna vedere di che tipo è la variabile restituita
+        if(nodo==3){
+            if(tipo == 2) Warning("Narrowing conversion from 'float' to 'char'.", line);
+        }
+        if(nodo==2) Warning("Narrowing conversion from 'float' to 'char'.", line);
+    }
+
+    //Restrizioni per funzioni di tipo bool
+    if(it->second.type == "bool"){
+        //Se si è entrati nel nodo identifier, bisogna vedere di che tipo è la variabile restituita
+        if(nodo==3){
+            if(tipo == 2) Warning("Narrowing conversion from 'float' to 'bool'.", line);
+        }
+        if(nodo==2) Warning("Narrowing conversion from 'float' to 'bool'.", line);
+    }
 }
+
+
+/*--------------------------------------------- TODO: Cose da fare -------------------------------------------------- */
 
 void PrintStmt :: semantics(){
 
@@ -293,10 +341,57 @@ void BinaryOperator :: semantics(){
 
     cout << "Dentro BinaryOperator" << endl;
 
-    cout << "Prima di lexpr" << endl;
     lexpr->semantics();
-    cout << "Dopo lexpr" << endl;
+    lexpr_value = value_type_node;
     rexpr->semantics();
-    cout << "Dopo rexpr" << endl;
+    rexpr_value = value_type_node;
+
+    switch(op){
+        case T_PLUS	: cout << "+" << endl;
+            break;
+        case T_MINUS	: cout << "-" << endl;
+            break;
+        case T_MULTIPLY	: cout << "*" << endl;
+            break;
+        case T_DIVIDE	: if(rexpr_value == 0)  Warning("Division by zero", line);
+            break;
+        case T_LT	: cout << "<"<< endl;
+            break;
+        case T_GT	: cout << ">" << endl;
+            break;
+        case T_GE	: cout << ">=" << endl;
+            break;
+        case T_LE	: cout << "<=" << endl;
+            break;
+        case T_AND	: cout << "&&" << endl;
+            break;
+        case T_OR	: cout << "or" << endl;
+            break;
+        case T_NOT	: cout << "not" << endl;
+            break;
+        case T_EQUAL	: cout << "=" << endl;
+            break;
+        case T_NOTEQUAL	: cout << "!=" << endl;
+            break;
+        default		: Error("Unavalaible expression.", line);
+    }
+
+
+
+/*    if(op == T_DIVIDE){
+        if(rexpr_value == 0)  Warning("Division by zero", line);
+    }*/
+
+/*    int idl = 0; //Per controllare espressione a sinistra
+    int idr = 0; //Per controllare espressione a destra
+
+    IDENT = 0; //Setto a 0 e vado a vedere se dopo lexpr cambia
+    lexpr->semantics();
+    idl = IDENT;
+    IDENT = 0;
+    rexpr->semantics();
+    idr = IDENT;
+
+    if (idl == 0 || idr == 0)	Error("Missing operand.", line);*/
 
 }

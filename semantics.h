@@ -71,7 +71,10 @@ static void Error(string name, int line){
     exit(0);
 }
 
-
+//Gestione degli warning
+static void Warning(string name, int line){
+    fprintf(stderr, "line: %d - warning: %s \n",line, name.c_str());
+}
 
 
 void DeclarationVarArgs(string name_func, string name_arg, string type, int line){
@@ -101,3 +104,18 @@ string name_function_declaration;
 string name_function_call;
 int f_c; //Serve ad identifier node per capire quale nodo lo ha richiamato
 int iterazione; //Memorizzo il numero di iterazione degli argomenti della funzione che vado a richiamare
+float lexpr_value; //Per memorizzare il valore dell'espressione di sinistra
+float rexpr_value; //Per memorizzare il valore dell'espressione di destra
+float value_type_node; //Per memorizzare il valore quando si entra nei nodi type
+int nodo; /* Per sapere in quale type node è entrato
+ *          -1: Integer
+ *          -2: Float
+ *          -3: Identifier
+ *          -4: Char
+ *          -5: Bool
+ *          -6: FunctionCall*/
+int tipo; /* Per sapere di che tipo è la varibile in esame
+ *          -1: Integer
+ *          -2: Float
+ *          -3: Char
+ *          -4: Bool*/

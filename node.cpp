@@ -78,7 +78,6 @@ public:
 
     BoolNode(int line, char* value):value(value){
         this->line = line;
-        cout << this->value << endl;
 
         //TODO: Vedere cosa bisogna fare dopo
     }
@@ -93,7 +92,6 @@ public:
     IdentifierNode(int line, char* value){
         this->line = line;
         this->value = value;
-        cout << this->value << endl;
 
         //TODO: Vedere cosa bisogna fare dopo
     }
@@ -268,12 +266,12 @@ public:
 class BinaryOperator : public Node
 {
 public:
-    int operatore;
+    int op;
     Node*	lexpr;
     Node*	rexpr;
     void semantics();
 
-    BinaryOperator(int line, int operatore, Node* lexpr, Node* rexpr):operatore(operatore),lexpr(lexpr),rexpr(rexpr) {
+    BinaryOperator(int line, int op, Node* lexpr, Node* rexpr):op(op),lexpr(lexpr),rexpr(rexpr) {
         this->line = line;
 
     }

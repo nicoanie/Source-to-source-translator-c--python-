@@ -41,6 +41,8 @@
 	Vec* vec;
 
 	char *a;
+
+	char op;
 	int token;
 
 }
@@ -181,19 +183,19 @@ Assignment
 Expression
 	: Primary								{ $$ = $1; }
 	| '(' Expression ')'					{ $$ = $2; }
-	| Expression T_PLUS Expression 			{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
-	| Expression T_MINUS Expression 		{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
-	| Expression T_MULTIPLY Expression 		{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
-	| Expression T_DIVIDE Expression 		{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
-	| Expression T_LT Expression 			{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
-	| Expression T_GT Expression 			{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
-	| Expression T_GE Expression 			{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
-	| Expression T_LE Expression 			{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
-	| Expression T_AND Expression 			{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
-	| Expression T_OR Expression 			{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
-	| Expression T_NOT Expression 			{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
-	| Expression T_EQUAL Expression 		{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
-	| Expression T_NOTEQUAL Expression 		{ $$ = new BinaryOperator(yylineno, $2, $1, $3); }
+	| Expression T_PLUS Expression 			{ $$ = new BinaryOperator(yylineno, T_PLUS, $1, $3); }
+	| Expression T_MINUS Expression 		{ $$ = new BinaryOperator(yylineno, T_MINUS, $1, $3); }
+	| Expression T_MULTIPLY Expression 		{ $$ = new BinaryOperator(yylineno, T_MULTIPLY, $1, $3); }
+	| Expression T_DIVIDE Expression 		{ $$ = new BinaryOperator(yylineno, T_DIVIDE, $1, $3); }
+	| Expression T_LT Expression 			{ $$ = new BinaryOperator(yylineno, T_LT, $1, $3); }
+	| Expression T_GT Expression 			{ $$ = new BinaryOperator(yylineno, T_GT, $1, $3); }
+	| Expression T_GE Expression 			{ $$ = new BinaryOperator(yylineno, T_GE, $1, $3); }
+	| Expression T_LE Expression 			{ $$ = new BinaryOperator(yylineno, T_LE, $1, $3); }
+	| Expression T_AND Expression 			{ $$ = new BinaryOperator(yylineno, T_AND, $1, $3); }
+	| Expression T_OR Expression 			{ $$ = new BinaryOperator(yylineno, T_OR, $1, $3); }
+	| Expression T_NOT Expression 			{ $$ = new BinaryOperator(yylineno, T_NOT, $1, $3); }
+	| Expression T_EQUAL Expression 		{ $$ = new BinaryOperator(yylineno, T_EQUAL, $1, $3); }
+	| Expression T_NOTEQUAL Expression 		{ $$ = new BinaryOperator(yylineno, T_NOTEQUAL, $1, $3); }
 	| '(' error ')'							{ if(err_line==yylineno) exit(1); err_line=yylineno; yyerrok;}
 	;
 
