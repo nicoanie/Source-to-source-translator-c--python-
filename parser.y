@@ -20,6 +20,7 @@
 
 	vector<Node*> global;
 	vector<Node*> funzioni;
+	vector<Node*> librerie;
 
 
 
@@ -48,11 +49,11 @@
 }
 
 	/* Declaration of tokens */
-%token <a> T_TYPE T_IDENT T_INT T_FLOAT T_BOOL T_CHAR
+%token <a> T_TYPE T_IDENT T_INT T_FLOAT T_BOOL T_CHAR T_SPECIFIER T_STR
 %token <token> T_PLUS T_MINUS T_MULTIPLY T_DIVIDE T_ASSIGN
 %token <token> T_LT T_GT T_EQUAL T_LE T_GE T_NOTEQUAL
 %token <token> T_AND T_OR T_NOT
-%token <token> T_RETURN T_WHILE T_ELSE T_IF T_PRINTF T_SCANF
+%token <token> T_RETURN T_WHILE T_ELSE T_IF T_PRINTF T_SCANF T_INCLUDE T_SUF
 
 %type <node> Program
 %type <node> Primary
@@ -65,8 +66,8 @@
 %type <node> ScanfStmt
 %type <node> FunctionCall
 
-
 %type <node> VariableDeclaration
+%type <node> LibraryDeclaration
 %type <node> ExternalDeclaration
 %type <node> VariableAssignment
 
@@ -76,6 +77,7 @@
 %type <vec> ExternalContent
 %type <vec> FunctionContent
 %type <vec> CallArguments
+
 
 
 
@@ -95,14 +97,21 @@ Program
     ;
 
 ExternalDeclaration
-    : ExternalContent                                   { reverse(global.begin(), global.end()); reverse(funzioni.begin(), funzioni.end()); $$ = new ExternalDec(yylineno, global, funzioni); global.clear(); }
+    : ExternalContent                                   { reverse(global.begin(), global.end()); reverse(funzioni.begin(), funzioni.end()); reverse(librerie.begin(), librerie.end()); $$ = new ExternalDec(yylineno, global, funzioni, librerie); global.clear(); }
     ;
 
 ExternalContent
 	: FunctionDeclaration								{ funzioni.push_back($1); }
 	| FunctionDeclaration ExternalContent   			{ funzioni.push_back($1); }
 	| VariableDeclaration ';' ExternalContent   		{ global.push_back($1); }
+	| VariableAssignment ';' ExternalContent            { global.push_back($1); }
+	| LibraryDeclaration ExternalContent                { librerie.push_back($1); }
 	;
+
+LibraryDeclaration
+    : T_INCLUDE T_LT T_IDENT T_SUF T_GT                 { $$ = new LibDec(yylineno, $3); }
+    | T_INCLUDE T_LT T_TYPE T_SUF T_GT                 { $$ = new LibDec(yylineno, $3); }
+    ;
 
 FunctionDeclaration
 	: T_TYPE T_IDENT '(' ArgumentsDefinition ')' '{' FunctionContent '}'		{ $$ = new FuncDecl(yylineno, $1, $2, $4->nodes, $7->nodes); }
@@ -155,11 +164,12 @@ CallArguments
 	;
 
 PrintfStmt
-	: T_PRINTF '(' '"' T_IDENT '"' ')'			{ $$ = new PrintStmt(yylineno, $4); }
-	;
+	: T_PRINTF '(' T_STR ')'			                { $$ = new PrintStmt(yylineno, new StringNode(yylineno, $3)); }
+	| T_PRINTF '(' T_SPECIFIER ',' T_IDENT ')'			{ $$ = new PrintStmt(yylineno, $3, $5 ); }
+    ;
 
 ScanfStmt
-    : T_SCANF '(' '"' T_IDENT '"' ')'			{ $$ = new ScanfStmt(yylineno, $4); }
+    : T_SCANF '(' T_SPECIFIER ',' '&' T_IDENT ')'			{ $$ = new ScanfStmt(yylineno, $3, $6); }
     ;
 
 IfStmt
@@ -183,6 +193,8 @@ Assignment
 Expression
 	: Primary								{ $$ = $1; }
 	| '(' Expression ')'					{ $$ = $2; }
+	| Assignment                            { $$ = $1; }
+	| T_NOT Expression 			            { $$ = new BinaryOperator(yylineno, T_NOT, NULL, $2); }
 	| Expression T_PLUS Expression 			{ $$ = new BinaryOperator(yylineno, T_PLUS, $1, $3); }
 	| Expression T_MINUS Expression 		{ $$ = new BinaryOperator(yylineno, T_MINUS, $1, $3); }
 	| Expression T_MULTIPLY Expression 		{ $$ = new BinaryOperator(yylineno, T_MULTIPLY, $1, $3); }
@@ -193,16 +205,6 @@ Expression
 	| Expression T_LE Expression 			{ $$ = new BinaryOperator(yylineno, T_LE, $1, $3); }
 	| Expression T_AND Expression 			{ $$ = new BinaryOperator(yylineno, T_AND, $1, $3); }
 	| Expression T_OR Expression 			{ $$ = new BinaryOperator(yylineno, T_OR, $1, $3); }
-	| Expression T_NOT Expression 			{ $$ = new BinaryOperator(yylineno, T_NOT, $1, $3); }
 	| Expression T_EQUAL Expression 		{ $$ = new BinaryOperator(yylineno, T_EQUAL, $1, $3); }
 	| Expression T_NOTEQUAL Expression 		{ $$ = new BinaryOperator(yylineno, T_NOTEQUAL, $1, $3); }
-	| '(' error ')'							{ if(err_line==yylineno) exit(1); err_line=yylineno; yyerrok;}
 	;
-
-	/* TODO:
-	         Verificare che Operatore logico NOT abbia precedenza a destra
-	         Vedere come far funzionare SCANF
-			 PRINTF dovrebbe essere sbagliato
-			 Vedere ExternalDeclaration se va bene così
-			 Gestione degli Errori nel parser
-	 */

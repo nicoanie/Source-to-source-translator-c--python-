@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+
 using namespace std;
 /* ------------------------------ Dichiarazione classe principale Nodo ------------------------------- */
 
@@ -11,9 +12,11 @@ public:
     int line;
     string type;
     string name;
+    string valore;
+
     virtual ~Node() = default;
     virtual void semantics() = 0;
-
+    virtual void translate() = 0;
 };
 
 class Vec
@@ -33,12 +36,11 @@ class IntegerNode : public Node
 public:
     int value;
     void semantics();
+    void translate();
 
     IntegerNode(int line, char* value){
         this->line = line;
         this->value = atoi(value);
-
-        //TODO: Vedere cosa bisogna fare dopo
     }
 };
 
@@ -47,12 +49,11 @@ class FloatNode : public Node
 public:
     float value;
     void semantics();
+    void translate();
 
     FloatNode(int line, char* value){
         this->line = line;
         this->value = atof(value);
-
-        //TODO: Vedere cosa bisogna fare dopo
     }
 };
 
@@ -61,12 +62,11 @@ class CharNode : public Node
 public:
     char value;
     void semantics();
+    void translate();
 
     CharNode(int line, char* value){
         this->line = line;
         this->value = value[1];
-
-        //TODO: Vedere cosa bisogna fare dopo
     }
 };
 
@@ -75,11 +75,10 @@ class BoolNode : public Node
 public:
     string value;
     void semantics();
+    void translate();
 
     BoolNode(int line, char* value):value(value){
         this->line = line;
-
-        //TODO: Vedere cosa bisogna fare dopo
     }
 };
 
@@ -88,35 +87,72 @@ class IdentifierNode : public Node
 public:
     string value;
     void semantics();
+    void translate();
 
     IdentifierNode(int line, char* value){
         this->line = line;
         this->value = value;
-
-        //TODO: Vedere cosa bisogna fare dopo
     }
 };
+
+class StringNode : public Node
+{
+public:
+    string value;
+    void semantics();
+    void translate();
+
+    StringNode(int line, char* value):value(value){
+        this->line = line;
+    }
+
+};
 /* --------------------------------------------------------------------------------------------------- */
+
+class ExternalDec : public Node
+{
+    vector<Node*> variables;
+    vector<Node*> function;
+    vector<Node*> librerie;
+    void semantics();
+    void translate();
+
+public:
+    ExternalDec(int line, vector<Node*> variables, vector<Node*> function, vector<Node*> librerie):variables(variables),function(function), librerie(librerie){
+        this->line = line;
+    }
+};
+
+class LibDec : public Node
+{
+    void semantics();
+    void translate();
+
+public:
+    LibDec(int line, char* name){
+        this->line = line;
+        this->name = name;
+    }
+};
 
 class VariableDec : public Node
 {
 public:
     Node* value;
     void semantics();
+    void translate();
 
     VariableDec(int line, char* type, char* name){
         this->line = line;
         this->type=type;
         this->name=name;
-
-        //TODO: Nel caso sia anche assegnato il valore, verificare che corrisponda al tipo
+        this->valore = "NULL";
     }
     VariableDec(int line, char* type, char* name, Node* value):value(value){
         this->line = line;
         this->type=type;
         this->name=name;
-
-        //TODO: Nel caso sia anche assegnato il valore, verificare che corrisponda al tipo
+        this->valore = "NOT NULL";
     }
 };
 
@@ -126,12 +162,11 @@ class Assignment : public Node
 public:
     Node* value;
     void semantics();
+    void translate();
 
     Assignment(int line, char* name, Node* value):value(value){
         this->line = line;
         this->name = name;
-
-        //TODO: Vedere come utilizzare l'espressione e cosa deve contenere il nodo
     }
 
 };
@@ -142,19 +177,18 @@ public:
     vector<Node*> args;
     vector<Node*> body;
     void semantics();
+    void translate();
 
     FuncDecl(int line, char* type, char* name, vector<Node*> args, vector<Node*> body):args(args),body(body){
         this->line = line;
         this->type = type;
         this->name = name;
-        //TODO: Mi serve anche il numero di variabili dichiarate per quando richiamo la funzione
     }
 
     FuncDecl(int line, char* type, char* name, vector<Node*> body):body(body){
         this->line = line;
         this->type = type;
         this->name = name;
-        //TODO: Mi serve anche il numero di variabili dichiarate per quando richiamo la funzione
     }
 
 };
@@ -164,18 +198,16 @@ class FunctionCall : public Node
 public:
     vector<Node*> args;
     void semantics();
+    void translate();
 
     FunctionCall(int line, char* name, vector<Node*> args):args(args){
         this->line = line;
         this->name = name;
-        //TODO
     }
 
     FunctionCall(int line, char* name){
         this->line = line;
         this->name = name;
-
-        //TODO
     }
 
 };
@@ -188,17 +220,14 @@ public:
     vector<Node*> body_if;
     vector<Node*> body_else;
     void semantics();
+    void translate();
 
     IfStmt(int line, Node* condition, vector<Node*> body_if):condition(condition),body_if(body_if){
         this->line = line;
-
-        //TODO: Vedere come utilizzare la condizione e cosa deve contenere il nodo
     }
 
     IfStmt(int line, Node* condition, vector<Node*> body_if, vector<Node*> body_else):condition(condition),body_if(body_if),body_else(body_else){
         this->line = line;
-
-        //TODO: Vedere come utilizzare la condizione e cosa deve contenere il nodo
     }
 
 };
@@ -209,11 +238,10 @@ public:
     Node* condition;
     vector<Node*> body_while;
     void semantics();
+    void translate();
 
     WhileStmt(int line, Node* condition, vector<Node*> body_while):condition(condition),body_while(body_while){
         this->line = line;
-
-        //TODO: Vedere come utilizzare la condizione e cosa deve contenere il nodo
     }
 
 };
@@ -223,11 +251,10 @@ class ReturnNode : public Node
 public:
     Node* value;
     void semantics();
+    void translate();
 
     ReturnNode(int line, Node* value):value(value){
         this->line = line;
-
-        //TODO: Vedere come gestire il valore
     }
 
 };
@@ -236,13 +263,19 @@ public:
 class PrintStmt : public Node
 {
 public:
-    Node* value;
+    string specifiers;
+    StringNode* string_v;
     void semantics();
+    void translate();
+    void print_ast();
 
-    PrintStmt(int line, char* value){
+    PrintStmt(int line, char* specifiers , char* variable):specifiers(specifiers){
         this->line = line;
+        this->name = variable;
+    }
 
-        //TODO: Capire come gestire il tutto
+    PrintStmt(int line,  StringNode* string_v):string_v(string_v){
+        this->line = line;
     }
 
 };
@@ -250,13 +283,14 @@ public:
 class ScanfStmt : public Node
 {
 public:
-    Node* value;
+    string specifiers;
     void semantics();
+    void translate();
+    void print_ast();
 
-    ScanfStmt(int line, char* value){
+    ScanfStmt(int line, char* specifiers , char* variable):specifiers(specifiers){
         this->line = line;
-
-        //TODO: Capire come gestire il tutto
+        this->name = variable;
     }
 
 };
@@ -270,28 +304,20 @@ public:
     Node*	lexpr;
     Node*	rexpr;
     void semantics();
+    void translate();
 
     BinaryOperator(int line, int op, Node* lexpr, Node* rexpr):op(op),lexpr(lexpr),rexpr(rexpr) {
         this->line = line;
 
     }
-    /* TODO: Vedere come gestire*/
+
+    BinaryOperator(int line, int op, Node* rexpr):op(op),rexpr(rexpr) {
+        this->line = line;
+
+    }
 };
 
 /* -------------------------------------------------------------------------------------------- */
 
-/* ------------------------------------- Per creare l'albero ------------------------------------- */
 
-class ExternalDec : public Node
-{
-    vector<Node*> variables;
-    vector<Node*> function;
-    void semantics();
-
-public:
-    ExternalDec(int line, vector<Node*> variables, vector<Node*> function):variables(variables),function(function){
-        this->line = line;
-    }
-    /* TODO: Vedere come gestire*/
-};
 
